@@ -1,0 +1,29 @@
+spring.profiles.active: ${SPRING_BOOT_PROFILE:dev}
+
+server:
+  port: ${PORT:8028}
+  servlet.context-path: /totvs/rest/
+
+spring:
+  flyway.enabled: true
+  datasource:
+    driver-class-name: ${DATASOURCE_DB_DRIVER}
+    url: ${DATASOURCE_DB_URL}
+    username: ${DATASOURCE_DB_USER}
+    password: ${DATASOURCE_DB_PASS}
+    hikari:
+      poolName: totvs_pool
+      autoCommit: false
+      connectionTimeout: 120000 # 120 segundos
+      validationTimeout: 60000 # 60 segundos
+      maxLifetime: 1500000 # 25 minutes
+      leakDetectionThreshold: 120000 # 2 minutes
+      maximumPoolSize: ${DB_POOLSIZE:40}
+
+logging.config: classpath:logback-spring-prod.xml
+logging.level.org.springframework.context.annotation.Condition: OFF
+
+
+spring.jpa.properties.javax.persistence.schema-generation.scripts.action: create
+spring.jpa.properties.javax.persistence.schema-generation.scripts.create-target: schema.sql
+spring.jpa.properties.hibernate.format_sql: true

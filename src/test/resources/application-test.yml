@@ -1,0 +1,17 @@
+spring:
+  flyway.enabled: true
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      poolName: test_pool
+      autoCommit: false
+      connectionTimeout: 10000 # 10 segundos
+      validationTimeout: 8000 # 8 segundos
+      maxLifetime: 9000 # 25 minutes
+      leakDetectionThreshold: 60000 # 1 minutes
+      maximumPoolSize: ${DB_POOLSIZE:35}
+
+logging.config: classpath:logback-spring-local.xml

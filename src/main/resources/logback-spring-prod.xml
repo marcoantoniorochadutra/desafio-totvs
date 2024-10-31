@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="com.totvs.conta.interfaces.filter.JsonTraceLoggingEnhancer">
+				<jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter"/>
+				<appendLineSeparator>true</appendLineSeparator>
+			</layout>
+	    </encoder>
+	</appender>
+
+	<root level="INFO">
+	    <appender-ref ref="jsonConsoleAppender"/>
+	</root>
+
+	<logger name="com.totvs" level="info"/>
+
+</configuration>
