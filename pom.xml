@@ -8,7 +8,7 @@
 
 	<groupId>com.totvs</groupId>
 	<artifactId>conta</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.2</version>
 
 	<properties>
 		<java.version>21</java.version>

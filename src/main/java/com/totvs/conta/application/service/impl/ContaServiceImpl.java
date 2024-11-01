@@ -76,11 +76,11 @@ public class ContaServiceImpl implements ContaService {
         Long usuarioId = usuarioContext.id();
         String descricao = (String) filtros.get("descricao");
 
-        LocalDate dataVencimento = (LocalDate) filtros.get("dataVencimento");
-        LocalDate dataInicial = LocalDate.now();
+        LocalDate dataVencimentoInicial = (LocalDate) filtros.get("dataVencimentoInicial");
+        LocalDate dataVencimentoFinal = (LocalDate) filtros.get("dataVencimentoFinal");
         List<Situacao> situacao = List.of(Situacao.EM_ABERTO, Situacao.ATRASADO);
 
-        Page<Conta> contas = contaRepository.obterContasPagar(situacao, descricao, dataInicial, dataVencimento, usuarioId, pageable);
+        Page<Conta> contas = contaRepository.obterContasPagar(situacao, descricao, dataVencimentoInicial, dataVencimentoFinal, usuarioId, pageable);
         return converterParaListaParaResultDto(contas);
     }
 

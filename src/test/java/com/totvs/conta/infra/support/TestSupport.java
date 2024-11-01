@@ -56,11 +56,15 @@ public class TestSupport extends TestContainerSupport{
         return usuarioRepository.buscarPorId(9L);
     }
 
+    protected Usuario usuario() {
+        return usuarioRepository.buscarPorId(10L);
+    }
+
     protected Conta criarConta(Usuario usuario, Situacao situacao, Double valor, String descricao) {
         return criarConta(usuario, situacao, valor, descricao, null);
     }
 
-        protected Conta criarConta(Usuario usuario, Situacao situacao, Double valor, String descricao, LocalDate dataPagamento) {
+    protected Conta criarConta(Usuario usuario, Situacao situacao, Double valor, String descricao, LocalDate dataPagamento) {
         Conta conta = Conta.builder()
                 .withDataVencimento(LocalDate.now().plusDays(10))
                 .withTipoConta(TipoConta.MERCADO)

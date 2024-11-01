@@ -68,7 +68,7 @@ public class ContaServiceTest extends TestSupport {
                 .withUsuario(buildSelecionavelDto("9"))
                 .build();
 
-        ContaDto contaAtualizada = contaService.atualizarConta(loginAdmin(), 15L, contaRequest);
+        ContaDto contaAtualizada = contaService.atualizarConta(loginAdmin(), 150L, contaRequest);
 
         assertNotNull(contaAtualizada.id());
         assertNull(contaAtualizada.dataPagamento());
@@ -84,9 +84,9 @@ public class ContaServiceTest extends TestSupport {
     public void deveAtualizarSituacaoConta() {
         LocalDate hoje = LocalDate.now();
 
-        ContaDto contaAtualizada = contaService.alterarSituacaoConta(login(), 16L, Situacao.PAGO);
+        ContaDto contaAtualizada = contaService.alterarSituacaoConta(login(), 160L, Situacao.PAGO);
 
-        assertEquals(16L, contaAtualizada.id());
+        assertEquals(160L, contaAtualizada.id());
         assertEquals(Situacao.PAGO.name(), contaAtualizada.situacao().chave());
         assertEquals(250.00, contaAtualizada.valor());
         assertEquals("Conta de Internet", contaAtualizada.descricao());
@@ -104,7 +104,8 @@ public class ContaServiceTest extends TestSupport {
         Map<String, Object> filtros = new HashMap<>();
         filtros.put("usuarioId", 9L);
         filtros.put("descricao", "Pagamento");
-        filtros.put("dataVencimento", LocalDate.now().plusDays(30));
+        filtros.put("dataVencimentoInicial", LocalDate.now());
+        filtros.put("dataVencimentoFinal", LocalDate.now().plusDays(30));
         Pageable page = PageRequest.of(0, 10);
 
         PaginacaoResultDto<ContaDto> contaAtualizada = contaService.obterContasParaPagar(loginAdmin(), page, filtros);
@@ -122,6 +123,42 @@ public class ContaServiceTest extends TestSupport {
         assertEquals(2500.0, contas.get(1).valor());
         assertEquals("Pagamento João", contas.get(1).descricao());
 
+    }
+
+    @Test
+    public void deveListarContasParaPagarSemDescricao() {
+
+        criarConta(usuario(), Situacao.EM_ABERTO, 6500.0, "Compra FT");
+        criarConta(usuario(), Situacao.ATRASADO, 2500.0, "Pagamento Claudio");
+        criarConta(usuario(), Situacao.PAGO, 4500.0, "Pagamento João", LocalDate.now());
+
+        Map<String, Object> filtros = new HashMap<>();
+        filtros.put("usuarioId", 9L);
+        filtros.put("dataVencimentoInicial", LocalDate.now());
+        filtros.put("dataVencimentoFinal", LocalDate.now().plusDays(30));
+        Pageable page = PageRequest.of(0, 10);
+
+        PaginacaoResultDto<ContaDto> contaAtualizada = contaService.obterContasParaPagar(login(), page, filtros);
+
+        assertEquals(0, contaAtualizada.paginaAtual());
+        assertEquals(1, contaAtualizada.totalPagina());
+        assertEquals(4, contaAtualizada.quantidadeTotal());
+
+        List<ContaDto> contas = contaAtualizada.itens();
+
+        assertEquals(4, contas.size());
+
+        assertEquals(250.0, contas.get(0).valor());
+        assertEquals("Conta de Internet", contas.get(0).descricao());
+
+        assertEquals(550.0, contas.get(1).valor());
+        assertEquals("Pagamento de Mercado", contas.get(1).descricao());
+
+        assertEquals(6500.0, contas.get(2).valor());
+        assertEquals("Compra FT", contas.get(2).descricao());
+
+        assertEquals(2500.0, contas.get(3).valor());
+        assertEquals("Pagamento Claudio", contas.get(3).descricao());
     }
 
     @Test
@@ -152,9 +189,9 @@ public class ContaServiceTest extends TestSupport {
     @Test
     public void deveBuscarContaPorIdUsuarioAdmin() {
 
-        ContaDto contaPagamento = contaService.obterContaPorId(loginAdmin(), 19L);
+        ContaDto contaPagamento = contaService.obterContaPorId(loginAdmin(), 190L);
 
-        assertEquals(19L, contaPagamento.id());
+        assertEquals(190L, contaPagamento.id());
         assertEquals(550.0, contaPagamento.valor());
         assertEquals("Pagamento de Mercado", contaPagamento.descricao());
 
@@ -162,7 +199,7 @@ public class ContaServiceTest extends TestSupport {
 
     @Test
     public void naoDeveBuscarContaDiferentesUsuarios() {
-        DomainException ex = assertThrows(DomainException.class, () -> contaService.obterContaPorId(login(), 17L));
+        DomainException ex = assertThrows(DomainException.class, () -> contaService.obterContaPorId(login(), 170L));
         assertEquals(MensagemErro.Genericos.USUARIO_NAO_AUTORIZADO, ex.getMessage());
     }
 

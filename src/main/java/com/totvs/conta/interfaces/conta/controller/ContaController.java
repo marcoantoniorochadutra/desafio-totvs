@@ -63,11 +63,12 @@ public class ContaController {
     @GetMapping
     public PaginacaoResultDto<ContaDto> obterContasParaPagar(
             @AuthenticationPrincipal LoginContextDto login,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dataVencimento,
-            @RequestParam String descricao,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dataVencimentoInicial,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dataVencimentoFinal,
+            @RequestParam(required = false) String descricao,
             @RequestParam(required = false, defaultValue = "100") Integer totalPagina,
             @RequestParam(required = false, defaultValue = "0") Integer paginaAtual) {
-        Map<String, Object> filtro = buildFiltroListagem(dataVencimento, descricao);
+        Map<String, Object> filtro = buildFiltroListagem(dataVencimentoInicial, dataVencimentoFinal,descricao);
 
         Pageable page = PageRequest.of(paginaAtual, totalPagina);
         return contaService.obterContasParaPagar(login, page, filtro);
@@ -89,9 +90,10 @@ public class ContaController {
         return contaService.importarContasCsv(login, file);
     }
 
-    private Map<String, Object> buildFiltroListagem(LocalDate dataVencimento, String descricao) {
+    private Map<String, Object> buildFiltroListagem(LocalDate dataVencimentoInicial, LocalDate dataVencimentoFinal, String descricao) {
         Map<String, Object> filtro = new HashMap<>();
-        filtro.put("dataVencimento", dataVencimento);
+        filtro.put("dataVencimentoInicial", dataVencimentoInicial);
+        filtro.put("dataVencimentoFinal", dataVencimentoFinal);
         filtro.put("descricao", descricao);
         return filtro;
     }

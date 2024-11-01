@@ -9,7 +9,7 @@ services:
       POSTGRES_USER:
       POSTGRES_PASSWORD:
   totvs_app:
-    image: marcodutra/desafio-totvs:0.0.1
+    image: marcodutra/desafio-totvs:1.0.2
     ports:
       - "8028:8028"
     environment:

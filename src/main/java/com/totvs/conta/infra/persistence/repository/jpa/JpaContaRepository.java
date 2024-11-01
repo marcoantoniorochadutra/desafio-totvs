@@ -32,7 +32,7 @@ public interface JpaContaRepository extends ContaRepository, JpaRepository<Conta
             inner join Usuario u on u.id = c.usuario.id
             where c.dataVencimento between :dataInicial and :dataFinal
             and c.situacao in :situacao
-            and c.descricao like CONCAT('%', :descricao ,'%')
+            and (c.descricao like CONCAT('%', :descricao ,'%') or :descricao is NULL)
             and u.id = :usuarioId
             """)
     Page<Conta> buscarContasPagar(@Param("situacao") List<Situacao> situacao,
