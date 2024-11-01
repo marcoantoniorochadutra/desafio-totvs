@@ -1,9 +1,27 @@
+version: "3.9"
 services:
   db:
     image: postgres:17
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
-      POSTGRES_DB: nome_do_banco
-      POSTGRES_USER: usuario
-      POSTGRES_PASSWORD: senha
+      POSTGRES_DB: totvs_db
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+  totvs_app:
+    image: marcodutra/desafio-totvs:0.0.1
+    ports:
+      - "8028:8028"
+    environment:
+      SPRING_BOOT_PROFILE: prod
+      PORT: 8028
+      DATASOURCE_DB_DRIVER: org.postgresql.Driver
+      DATASOURCE_DB_URL: jdbc:postgresql://db:5432/totvs_db
+      DATASOURCE_DB_USER:
+      DATASOURCE_DB_PASS:
+      DB_POOLSIZE: 40
+    depends_on:
+      - db
+networks:
+  compose-bridge:
+    driver: totvs-bridge

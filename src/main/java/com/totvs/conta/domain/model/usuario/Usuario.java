@@ -1,7 +1,7 @@
 package com.totvs.conta.domain.model.usuario;
 
-import com.totvs.conta.application.exception.LoginError;
-import com.totvs.conta.application.exception.LoginException;
+import com.totvs.conta.application.exception.AuthError;
+import com.totvs.conta.application.exception.AuthException;
 import com.totvs.conta.shared.constants.MensagemErro;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
@@ -36,13 +37,11 @@ import java.util.Objects;
 @ToString
 @Builder(setterPrefix = "with")
 @Entity
-@Table(uniqueConstraints = {
-        @UniqueConstraint(columnNames = "email")
-})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = "email")}, indexes = {@Index(name = "idx_email", columnList = "email")})
 public class Usuario implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
@@ -68,11 +67,11 @@ public class Usuario implements UserDetails {
 
     public void validarUsuario(String senhaInserida) {
         if (!getAtivo()) {
-            throw new LoginException(LoginError.DISABLED, MensagemErro.Autenticacao.USUARIO_DESATIVADO);
+            throw new AuthException(AuthError.USUARIO_DESATIVADO, MensagemErro.Autenticacao.USUARIO_DESATIVADO);
         }
 
         if (Objects.isNull(senhaInserida) || !senhaInserida.equals(getSenha())) {
-            throw new LoginException(LoginError.WRONG_PASSWORD, MensagemErro.Autenticacao.SENHA_INCORRETA);
+            throw new AuthException(AuthError.SENHA_INCORRETA, MensagemErro.Autenticacao.SENHA_INCORRETA);
         }
     }
 
@@ -90,8 +89,5 @@ public class Usuario implements UserDetails {
     public String getUsername() {
         return email;
     }
-
-
-    // TODO SALVAR REFRESH TOKEN E ADICIONAR LÓGICA
 
 }

@@ -1,7 +1,7 @@
 package com.totvs.conta.domain;
 
-import com.totvs.conta.application.exception.LoginError;
-import com.totvs.conta.application.exception.LoginException;
+import com.totvs.conta.application.exception.AuthError;
+import com.totvs.conta.application.exception.AuthException;
 import com.totvs.conta.shared.constants.MensagemErro;
 import com.totvs.conta.domain.model.usuario.Usuario;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ public class UsuarioDomainTest {
 
     @Test
     public void deveLancarExcecaoQuandoUsuarioDesativado() {
-        LoginException ex = assertThrows(LoginException.class, () -> {
+        AuthException ex = assertThrows(AuthException.class, () -> {
             Usuario usuario = Usuario.builder()
                     .withNome("Mock")
                     .withEmail("mock@email.com")
@@ -23,13 +23,13 @@ public class UsuarioDomainTest {
             usuario.validarUsuario("Senha");
         });
 
-        assertEquals(LoginError.DISABLED, ex.getLoginError());
+        assertEquals(AuthError.USUARIO_DESATIVADO, ex.getLoginError());
         assertEquals(MensagemErro.Autenticacao.USUARIO_DESATIVADO, ex.getMessage());
     }
 
     @Test
     public void deveLancarExcecaoQuandoSenhaErrada() {
-        LoginException ex = assertThrows(LoginException.class, () -> {
+        AuthException ex = assertThrows(AuthException.class, () -> {
             Usuario usuario = Usuario.builder()
                     .withNome("Mock")
                     .withEmail("mock@email.com")
@@ -39,7 +39,7 @@ public class UsuarioDomainTest {
             usuario.validarUsuario("Senha");
         });
 
-        assertEquals(LoginError.WRONG_PASSWORD, ex.getLoginError());
+        assertEquals(AuthError.SENHA_INCORRETA, ex.getLoginError());
         assertEquals(MensagemErro.Autenticacao.SENHA_INCORRETA, ex.getMessage());
     }
 }

@@ -1,6 +1,7 @@
 package com.totvs.conta.application.service.impl;
 
 import com.totvs.conta.application.service.ContaService;
+import com.totvs.conta.domain.model.conta.TipoConta;
 import com.totvs.conta.infra.reader.CsvReader;
 import com.totvs.conta.shared.dto.LoginContextDto;
 import com.totvs.conta.shared.dto.SelecionavelDto;
@@ -25,7 +26,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -75,6 +75,7 @@ public class ContaServiceImpl implements ContaService {
 
         Long usuarioId = usuarioContext.id();
         String descricao = (String) filtros.get("descricao");
+
         LocalDate dataVencimento = (LocalDate) filtros.get("dataVencimento");
         LocalDate dataInicial = LocalDate.now();
         List<Situacao> situacao = List.of(Situacao.EM_ABERTO, Situacao.ATRASADO);
@@ -102,7 +103,7 @@ public class ContaServiceImpl implements ContaService {
 
     @Override
     public List<ContaDto> importarContasCsv(LoginContextDto usuarioContext, byte[] bytes) {
-        List<ContaDto> contas = csvReader.read(bytes, "Data Vencimento", "Data Pagamento", "Valor", "Descrição", "Situação");
+        List<ContaDto> contas = csvReader.read(bytes, "Data Vencimento", "Data Pagamento", "Valor", "Descrição", "Situação", "Tipo Conta");
         return contas.stream()
                 .map(conta -> importarConta(usuarioContext, conta))
                 .filter(Objects::nonNull)
@@ -126,8 +127,11 @@ public class ContaServiceImpl implements ContaService {
     }
 
     private void atualizarDadosConta(Conta conta, ContaDto contaDto) {
-        Situacao situacao = Situacao.fromStr(contaDto.situacao().chave());
+        Situacao situacao = Situacao.fromStr(pegarChaveValida(contaDto.situacao()));
+        TipoConta tipoConta = TipoConta.fromStr(pegarChaveValida(contaDto.tipoConta()));
+
         conta.atualizarSituacao(situacao);
+        conta.setTipoConta(tipoConta);
         conta.setDataVencimento(contaDto.dataVencimento());
         conta.setDataPagamento(contaDto.dataPagamento());
         conta.setValor(contaDto.valor());
@@ -146,15 +150,24 @@ public class ContaServiceImpl implements ContaService {
     }
 
     private Conta converterDtoParaDominio(Usuario usuario, ContaDto contaDto) {
-        Situacao situacao = Situacao.fromStr(contaDto.situacao().chave());
+        Situacao situacao = Situacao.fromStr(pegarChaveValida(contaDto.situacao()));
+        TipoConta tipoConta = TipoConta.fromStr(pegarChaveValida(contaDto.tipoConta()));
         return Conta.builder()
                 .withDataVencimento(contaDto.dataVencimento())
                 .withDataPagamento(contaDto.dataPagamento())
                 .withValor(contaDto.valor())
                 .withDescricao(contaDto.descricao())
                 .withSituacao(situacao)
+                .withTipoConta(tipoConta)
                 .withUsuario(usuario)
                 .build();
+    }
+
+    private String pegarChaveValida(SelecionavelDto selecionavelDto) {
+        if(Objects.nonNull(selecionavelDto)) {
+            return selecionavelDto.chave();
+        }
+        return null;
     }
 
     private ContaDto converterDominioParaDto(Conta conta) {
@@ -167,6 +180,10 @@ public class ContaServiceImpl implements ContaService {
                 .withSituacao(SelecionavelDto.builder()
                         .withChave(conta.getSituacao().name())
                         .withValor(conta.getSituacao().getDescricao())
+                        .build())
+                .withTipoConta(SelecionavelDto.builder()
+                        .withChave(conta.getTipoConta().name())
+                        .withValor(conta.getTipoConta().getDescricao())
                         .build())
                 .withUsuario(SelecionavelDto.builder()
                         .withChave(conta.getUsuario().getId().toString())

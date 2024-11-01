@@ -1,13 +1,15 @@
 package com.totvs.conta.interfaces.handler;
 
 
-import com.totvs.conta.application.exception.LoginException;
+import com.totvs.conta.application.exception.AuthException;
+import com.totvs.conta.domain.exception.DomainException;
 import com.totvs.conta.shared.constants.MensagemErro;
 import com.totvs.conta.shared.dto.MensagemDto;
-import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolationException;
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,48 +18,51 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.sql.SQLException;
 
+@Slf4j
 @RestControllerAdvice
 public class ManipuladorExcecoes extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> deveTratarErroConstraint(Exception ex, WebRequest request) {
-        ex.getStackTrace();
-        System.err.println("aaaa");
-        System.err.println(ex.getCause());
-        System.err.println(ex.getLocalizedMessage());
-        System.err.println(ex.getClass());
-        System.err.println(ex.getSuppressed());
-
-        return ResponseEntity.badRequest().body(getMensagemDto(ex));
+    public ResponseEntity<Object> tratarErro(Exception ex, WebRequest request) {
+        log.error("ERRO GENÉRICO | OCORREU UM ERRO INESPERADO: {}", ex.getMessage(), ex);
+        return ResponseEntity.internalServerError()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(buildMensagem(MensagemErro.Genericos.PROBLEMA_SERVIDOR));
     }
 
-    private MensagemDto getMensagemDto(Exception ex) {
-        ex.getStackTrace();
-        if (ex instanceof ConstraintViolationException) {
-            return TratamentoConstraintException.tratar((ConstraintViolationException) ex);
-        }
-
-        if (ex instanceof DataIntegrityViolationException) {
-            Da
-            return TratamentoSqlException.tratar((SQLException) ex);
-        }
-
-        if (ex instanceof LoginException) {
-            return new MensagemDto(tratarMensagemErroLogin((LoginException) ex));
-        }
-
-        if (ex instanceof JwtException) {
-            return new MensagemDto(tratarMensagemErroJwt());
-        }
-
-        return new MensagemDto(MensagemErro.Genericos.PROBLEMA_SERVIDOR);
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<Object> tratarErroDomain(DomainException ex, WebRequest request) {
+        return ResponseEntity.internalServerError()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(buildMensagem(ex.getMessage()));
     }
 
-    private String tratarMensagemErroLogin(LoginException ex) {
-        return ex.getLoginError().getDescricao();
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> tratarErroConstraint(ConstraintViolationException ex, WebRequest request) {
+        return FormatMsgErroConstraint.tratarExcecao(ex);
     }
 
-    private String tratarMensagemErroJwt() {
-        return MensagemErro.Autenticacao.ACESSO_NEGADO + StringUtils.SPACE + MensagemErro.Autenticacao.TOKEN_INVALIDO;
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> tratarDataIntegrity(DataIntegrityViolationException ex, WebRequest request) {
+        Throwable rootCause = ex.getRootCause();
+
+        if (rootCause instanceof SQLException sqlException) {
+            return FormatMsgErroDb.tratarExcecao(sqlException);
+        }
+
+        return ResponseEntity.internalServerError()
+                .body(buildMensagem(MensagemErro.Genericos.PROBLEMA_SERVIDOR));
     }
+
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<Object> trataErroLogin(AuthException ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(buildMensagem(ex.getMessage()));
+    }
+
+    private MensagemDto buildMensagem(String mensagem) {
+        return new MensagemDto(mensagem);
+    }
+
 }

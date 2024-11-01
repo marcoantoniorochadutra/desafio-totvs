@@ -5,12 +5,15 @@ import com.totvs.conta.interfaces.usuario.dto.LoginDto;
 import com.totvs.conta.interfaces.usuario.dto.LoginWrapperDto;
 import com.totvs.conta.interfaces.usuario.dto.RegistroDto;
 import com.totvs.conta.interfaces.usuario.dto.UsuarioDto;
-import com.totvs.conta.application.exception.LoginError;
-import com.totvs.conta.application.exception.LoginException;
+import com.totvs.conta.application.exception.AuthError;
+import com.totvs.conta.application.exception.AuthException;
 import com.totvs.conta.domain.model.usuario.UsuarioRepository;
 import com.totvs.conta.infra.support.TestSupport;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,7 +34,7 @@ public class UsuarioServiceTest extends TestSupport {
     public void deveCadastrarUsuario() {
         RegistroDto registro = RegistroDto.builder()
                 .email("mock@email.com")
-                .senha("senhaSegura")
+                .senha("S3nha$egur@")
                 .nome("Mock")
                 .build();
 
@@ -52,7 +55,6 @@ public class UsuarioServiceTest extends TestSupport {
         LoginWrapperDto usuario = usuarioService.login(registro);
 
         assertTrue(usuario.accessToken().startsWith("ey"));
-        assertNotNull(usuario.refreshToken());
         assertEquals("mock_sql@email.com", usuario.loginContext().email());
     }
 
@@ -63,9 +65,9 @@ public class UsuarioServiceTest extends TestSupport {
                 .senha("senha")
                 .build();
 
-        LoginException error = assertThrows(LoginException.class, () -> usuarioService.login(registro));
+        AuthException error = assertThrows(AuthException.class, () -> usuarioService.login(registro));
 
-        assertEquals(LoginError.NOT_FOUND, error.getLoginError());
+        assertEquals(AuthError.EMAIL_NAO_ENCONTRADO, error.getLoginError());
         assertEquals(MensagemErro.Autenticacao.EMAIL_NAO_ENCONTRADO, error.getMessage());
     }
 
@@ -76,9 +78,9 @@ public class UsuarioServiceTest extends TestSupport {
                 .senha("senhaSeguraA")
                 .build();
 
-        LoginException error = assertThrows(LoginException.class, () -> usuarioService.login(registro));
+        AuthException error = assertThrows(AuthException.class, () -> usuarioService.login(registro));
 
-        assertEquals(LoginError.WRONG_PASSWORD, error.getLoginError());
+        assertEquals(AuthError.SENHA_INCORRETA, error.getLoginError());
         assertEquals(MensagemErro.Autenticacao.SENHA_INCORRETA, error.getMessage());
     }
 
@@ -89,9 +91,9 @@ public class UsuarioServiceTest extends TestSupport {
                 .senha("senhaSegura")
                 .build();
 
-        LoginException error = assertThrows(LoginException.class, () -> usuarioService.login(registro));
+        AuthException error = assertThrows(AuthException.class, () -> usuarioService.login(registro));
 
-        assertEquals(LoginError.NOT_FOUND, error.getLoginError());
+        assertEquals(AuthError.EMAIL_NAO_ENCONTRADO, error.getLoginError());
         assertEquals(MensagemErro.Autenticacao.EMAIL_NAO_ENCONTRADO, error.getMessage());
     }
 
@@ -102,9 +104,43 @@ public class UsuarioServiceTest extends TestSupport {
                 .senha("senhaSegura")
                 .build();
 
-        LoginException error = assertThrows(LoginException.class, () -> usuarioService.login(registro));
+        AuthException error = assertThrows(AuthException.class, () -> usuarioService.login(registro));
 
-        assertEquals(LoginError.DISABLED, error.getLoginError());
+        assertEquals(AuthError.USUARIO_DESATIVADO, error.getLoginError());
         assertEquals(MensagemErro.Autenticacao.USUARIO_DESATIVADO, error.getMessage());
+    }
+
+    @Test
+    public void naoDeveCadastrarUsuarioSenhaFraca() {
+        RegistroDto registro = RegistroDto.builder()
+                .email("mock@email.com")
+                .senha("senha")
+                .nome("Mock")
+                .build();
+
+        AuthException error = assertThrows(AuthException.class, () -> usuarioService.registrar(registro));
+
+        assertEquals(AuthError.SENHA_FRACA, error.getLoginError());
+        assertEquals("A senha deve conter letras e números, entre 6 e 20 caracteres, podendo conter caracteres especiais.",
+                error.getMessage());
+
+    }
+
+    @Test
+    public void naoDeveCadastrarCamposInvalidos() {
+        RegistroDto registro = RegistroDto.builder()
+                .email("mockemailcom")
+                .senha("S3nha$egur@")
+                .nome(null)
+                .build();
+
+        ConstraintViolationException ex = assertThrows(ConstraintViolationException.class, () -> usuarioService.registrar(registro));
+        String violations = ex.getConstraintViolations()
+                .stream()
+                .map(e -> e.getPropertyPath().toString())
+                .sorted()
+                .collect(Collectors.joining(","));
+
+        assertEquals("email,nome", violations);
     }
 }

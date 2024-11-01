@@ -1,5 +1,6 @@
 package com.totvs.conta.application.service;
 
+import com.totvs.conta.domain.model.conta.TipoConta;
 import com.totvs.conta.shared.constants.MensagemErro;
 import com.totvs.conta.domain.exception.DomainException;
 import com.totvs.conta.domain.model.conta.Situacao;
@@ -7,6 +8,7 @@ import com.totvs.conta.infra.support.TestSupport;
 import com.totvs.conta.interfaces.conta.dto.ContaDto;
 import com.totvs.conta.shared.dto.PaginacaoResultDto;
 import com.totvs.conta.interfaces.conta.dto.ContaPagamentoDto;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +21,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -32,11 +35,11 @@ public class ContaServiceTest extends TestSupport {
 
     @Test
     public void deveCadastrarConta() {
-
         ContaDto contaRequest = ContaDto.builder()
                 .withDataVencimento(LocalDate.now().plusDays(7))
                 .withValor(4500.0)
                 .withDescricao("Injeção Eletronica")
+                .withTipoConta(buildSelecionavelDto(TipoConta.MECANICO.name(), TipoConta.MECANICO.getDescricao()))
                 .withSituacao(buildSelecionavelDto(Situacao.EM_ABERTO.name(), Situacao.EM_ABERTO.getDescricao()))
                 .withUsuario(buildSelecionavelDto("9"))
                 .build();
@@ -60,6 +63,7 @@ public class ContaServiceTest extends TestSupport {
                 .withDataVencimento(LocalDate.now().plusDays(30))
                 .withValor(7500.0)
                 .withDescricao("Injeção Eletronica - Atualizada")
+                .withTipoConta(buildSelecionavelDto(TipoConta.MECANICO.name(), TipoConta.MECANICO.getDescricao()))
                 .withSituacao(buildSelecionavelDto(Situacao.EM_ABERTO.name(), Situacao.EM_ABERTO.getDescricao()))
                 .withUsuario(buildSelecionavelDto("9"))
                 .build();
@@ -125,12 +129,12 @@ public class ContaServiceTest extends TestSupport {
 
         LocalDate dataBase = LocalDate.now().plusDays(50);
 
-        criarConta(usuarioAdmin(), Situacao.PAGO, 4500.0, "Pagamento João", dataBase);
-        criarConta(usuarioAdmin(), Situacao.PAGO, 2500.0, "Pagamento Cleber", dataBase);
-        criarConta(usuarioAdmin(), Situacao.ATRASADO, 1500.0, "Pagamento Batata");
-        criarConta(usuarioAdmin(), Situacao.EM_ABERTO, 1500.0, "Pagamento Batata");
-        criarConta(usuarioAdmin(), Situacao.CANCELADO, 1500.0, "Pagamento Batata", dataBase);
-        criarConta(usuarioAdmin(), Situacao.PAGO, 100.0, "Pagamento Gustavo", dataBase);
+        criarConta(usuarioAdmin(), Situacao.PAGO, 4500.0, "Pagamento ao Mercado João", dataBase);
+        criarConta(usuarioAdmin(), Situacao.PAGO, 2500.0, "Pagamento ao Mercado Cleber", dataBase);
+        criarConta(usuarioAdmin(), Situacao.ATRASADO, 1500.0, "Pagamento ao Mercado Batata");
+        criarConta(usuarioAdmin(), Situacao.EM_ABERTO, 1500.0, "Pagamento ao Mercado Batata");
+        criarConta(usuarioAdmin(), Situacao.CANCELADO, 1500.0, "Pagamento ao Mercado Batata", dataBase);
+        criarConta(usuarioAdmin(), Situacao.PAGO, 100.0, "Pagamento ao Mercado Gustavo", dataBase);
 
 
         Map<String, Object> filtros = new HashMap<>();
@@ -169,7 +173,6 @@ public class ContaServiceTest extends TestSupport {
 
         List<ContaDto> contas = contaService.importarContasCsv(loginAdmin(), csvFile);
 
-
         assertEquals(3, contas.size());
 
         ContaDto conta = contas.getFirst();
@@ -178,6 +181,38 @@ public class ContaServiceTest extends TestSupport {
         assertEquals("Compra de materiais", conta.descricao());
         assertEquals("PAGO", conta.situacao().chave());
 
+    }
+
+    @Test
+    public void naoDeveCadastrarContaCamposVazios() {
+
+        ContaDto contaRequest = ContaDto.builder()
+                .withValor(100.0)
+                .withUsuario(buildSelecionavelDto("9"))
+                .build();
+
+        ConstraintViolationException ex = assertThrows(ConstraintViolationException.class, () -> contaService.cadastrarConta(loginAdmin(), contaRequest));
+        String violations = ex.getConstraintViolations()
+                .stream()
+                .map(e -> e.getPropertyPath().toString())
+                .sorted()
+                .collect(Collectors.joining(","));
+        assertEquals("dataVencimento,descricao", violations);
+    }
+
+    @Test
+    public void naoDeveCadastrarContaValorInvalido() {
+
+        ContaDto contaRequest = ContaDto.builder()
+                .withDataVencimento(LocalDate.now().plusDays(7))
+                .withDescricao("Injeção Eletronica")
+                .withTipoConta(buildSelecionavelDto(TipoConta.MECANICO.name(), TipoConta.MECANICO.getDescricao()))
+                .withSituacao(buildSelecionavelDto(Situacao.EM_ABERTO.name(), Situacao.EM_ABERTO.getDescricao()))
+                .withUsuario(buildSelecionavelDto("9"))
+                .build();
+        DomainException ex = assertThrows(DomainException.class, () -> contaService.cadastrarConta(loginAdmin(), contaRequest));
+
+        assertEquals(MensagemErro.Conta.CONTA_VALOR_NEGATIVO, ex.getMessage());
     }
 
 

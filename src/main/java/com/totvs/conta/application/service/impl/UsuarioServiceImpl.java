@@ -8,12 +8,12 @@ import com.totvs.conta.interfaces.usuario.dto.LoginDto;
 import com.totvs.conta.interfaces.usuario.dto.LoginWrapperDto;
 import com.totvs.conta.interfaces.usuario.dto.RegistroDto;
 import com.totvs.conta.interfaces.usuario.dto.UsuarioDto;
-import com.totvs.conta.application.exception.LoginError;
-import com.totvs.conta.application.exception.LoginException;
+import com.totvs.conta.application.exception.AuthError;
+import com.totvs.conta.application.exception.AuthException;
 import com.totvs.conta.application.service.UsuarioService;
 import com.totvs.conta.domain.model.usuario.Usuario;
 import com.totvs.conta.domain.model.usuario.UsuarioRepository;
-import com.totvs.conta.infra.security.SenhaEncoder;
+import com.totvs.conta.infra.security.SenhaUtils;
 import com.totvs.conta.infra.security.JwtProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,11 +39,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario usuario = buscarUsuarioPorCredenciais(login);
         LoginContextDto context = criarLoginContext(usuario);
         String accessToken = JwtProvider.generate(context);
-        String refreshToken = JwtProvider.generateRefreshToken();
 
         return LoginWrapperDto.builder()
                 .withAccessToken(accessToken)
-                .withRefreshToken(refreshToken)
                 .withLoginContext(context)
                 .build();
     }
@@ -51,6 +49,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public UsuarioDto registrar(RegistroDto registro) {
         Usuario usuario = converterUsuarioParaDominio(registro);
+
         usuario = usuarioRepository.salvar(usuario);
         return converterUsuarioParaDto(usuario);
     }
@@ -70,19 +69,20 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario usuario = usuarioRepository.buscarPorEmail(login.email());
 
         if (Objects.isNull(usuario)) {
-            throw new LoginException(LoginError.NOT_FOUND, MensagemErro.Autenticacao.EMAIL_NAO_ENCONTRADO);
+            throw new AuthException(AuthError.EMAIL_NAO_ENCONTRADO, MensagemErro.Autenticacao.EMAIL_NAO_ENCONTRADO);
         }
 
-        String senhaCriptografa = SenhaEncoder.encodeSenha(login.senha());
+        String senhaCriptografa = SenhaUtils.encodeSenha(login.senha());
 
         usuario.validarUsuario(senhaCriptografa);
         return usuario;
     }
 
     private Usuario converterUsuarioParaDominio(RegistroDto registro) {
+        SenhaUtils.validarSenha(registro.senha());
         return Usuario.builder()
                 .withEmail(registro.email())
-                .withSenha(SenhaEncoder.encodeSenha(registro.senha()))
+                .withSenha(SenhaUtils.encodeSenha(registro.senha()))
                 .withNome(registro.nome())
                 .withAtivo(true)
                 .withNivelUsuario(NivelUsuario.USUARIO)

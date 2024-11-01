@@ -1,5 +1,6 @@
 package com.totvs.conta.infra.support;
 
+import com.totvs.conta.domain.model.conta.TipoConta;
 import com.totvs.conta.shared.dto.LoginContextDto;
 import com.totvs.conta.shared.dto.SelecionavelDto;
 import com.totvs.conta.domain.model.conta.Conta;
@@ -62,6 +63,7 @@ public class TestSupport extends TestContainerSupport{
         protected Conta criarConta(Usuario usuario, Situacao situacao, Double valor, String descricao, LocalDate dataPagamento) {
         Conta conta = Conta.builder()
                 .withDataVencimento(LocalDate.now().plusDays(10))
+                .withTipoConta(TipoConta.MERCADO)
                 .withDataPagamento(dataPagamento)
                 .withValor(valor)
                 .withDescricao(descricao)

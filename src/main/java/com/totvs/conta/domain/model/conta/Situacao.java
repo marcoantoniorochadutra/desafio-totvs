@@ -1,6 +1,5 @@
 package com.totvs.conta.domain.model.conta;
 
-import com.totvs.conta.shared.constants.MensagemErro;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -16,15 +15,15 @@ public enum Situacao {
     CANCELADO(3, 30, "Cancelado");
 
 
-    private int ordinal;
-    private int hierarquia;
-    private String descricao;
+    private final int ordinal;
+    private final int hierarquia;
+    private final String descricao;
 
     public static Situacao fromStr(String status) {
         return Arrays.stream(Situacao.values())
                 .filter(item -> item.name().equalsIgnoreCase(status))
                 .findAny()
-                .orElseThrow(() -> new IllegalArgumentException(String.format(MensagemErro.Genericos.INFORMACAO_INVALIDA, status)));
+                .orElse(EM_ABERTO);
     }
 
 }

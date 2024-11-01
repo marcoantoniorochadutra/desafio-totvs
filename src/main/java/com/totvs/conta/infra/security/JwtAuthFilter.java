@@ -1,5 +1,6 @@
 package com.totvs.conta.infra.security;
 
+import com.totvs.conta.shared.constants.MensagemErro;
 import com.totvs.conta.shared.dto.LoginContextDto;
 import com.totvs.conta.domain.model.usuario.UsuarioRepository;
 import jakarta.servlet.FilterChain;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -24,18 +26,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
-        System.err.println(token);
-        if (token != null) {
-            LoginContextDto login = JwtProvider.getLoginContext(token);
-            System.err.println(login);
-            UserDetails user = usuarioRepository.buscarPorEmail(login.email());
-            System.err.println(user);
+        try {
+            if (Objects.nonNull(token)) {
 
-            var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                LoginContextDto login = JwtProvider.getLoginContext(token);
+
+                UserDetails user = usuarioRepository.buscarPorEmail(login.email());
+                var authentication = new UsernamePasswordAuthenticationToken(login, null, user.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, MensagemErro.Autenticacao.ACESSO_NEGADO);
         }
-        filterChain.doFilter(request, response);
-
     }
 
     private String recoverToken(HttpServletRequest request){

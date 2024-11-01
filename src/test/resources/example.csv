@@ -1,6 +1,6 @@
-Data Vencimento,Data Pagamento,Valor,Descrição,Situação
-2024-10-01,2024-10-05,150.00,Compra de materiais,PAGO
-2024-11-01,,200.00,Manutenção,EM_ABERTO
-2024-12-01,2024-12-03,300.00,Compra de suprimentos,PAGO
-2024-11-01,,200.00,Manutenção,PAGO
-
+Data Vencimento,Data Pagamento,Valor,Descrição,Situação,Tipo Conta
+2024-10-01,2024-10-05,150.00,Compra de materiais,PAGO,MERCADO
+2024-11-01,,200.00,Manutenção,EM_ABERTO,MECANICO
+2024-12-01,2024-12-03,300.00,Compra de suprimentos,PAGO,MERCADO
+2024-11-01,,200.00,Eletricista,PAGO,SERVICOS
+,,,,,

@@ -19,19 +19,17 @@ import java.util.Date;
 @Service
 public class JwtProvider {
 
-
     private static final String LOGIN_CONTEXT = "login";
-
+    private static final Long VALIDADE_TOKEN_HORAS = 1L;
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor("SzdThWLbUbLQDGWogQkDnpxVgITHibjrlrxyoZdk3JitJs7S9Wq975F5e8AWxyDA".getBytes(StandardCharsets.UTF_8));
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final Base64.Encoder BASE64_ENCODER = Base64.getUrlEncoder();
-
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
 
     public static String generate(LoginContextDto loginContext) {
         Instant issuedAt = Instant.now();
-        Instant expiration = issuedAt.plus(5, ChronoUnit.MINUTES);
+        Instant expiration = issuedAt.plus(VALIDADE_TOKEN_HORAS, ChronoUnit.HOURS);
         return Jwts.builder()
                 .claim(LOGIN_CONTEXT, loginContext)
                 .issuedAt(Date.from(issuedAt))

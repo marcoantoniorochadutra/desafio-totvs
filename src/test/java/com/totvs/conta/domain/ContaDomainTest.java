@@ -93,9 +93,7 @@ public class ContaDomainTest {
                 .withUsuario(new Usuario())
                 .build();
 
-        DomainException ex = assertThrows(DomainException.class, () -> {
-            conta.atualizarSituacao(Situacao.ATRASADO);
-        });
+        DomainException ex = assertThrows(DomainException.class, () -> conta.atualizarSituacao(Situacao.ATRASADO));
 
         String expected = String.format(MensagemErro.Conta.CONTA_NAO_ATRASADA, vencimento);
         assertEquals(expected, ex.getMessage());
@@ -112,40 +110,34 @@ public class ContaDomainTest {
                 .build();
         conta.setSituacao(Situacao.CANCELADO);
 
-        DomainException ex = assertThrows(DomainException.class, () -> {
-            conta.atualizarSituacao(Situacao.PAGO);
-        });
+        DomainException ex = assertThrows(DomainException.class, () -> conta.atualizarSituacao(Situacao.PAGO));
 
         assertEquals(MensagemErro.Conta.TRANISCAO_INVALIDA, ex.getMessage());
     }
 
     @Test
     public void deveLancarExcecaoQuandoAbertoComPagamento() {
-        DomainException ex = assertThrows(DomainException.class, () -> {
-            Conta.builder()
-                    .withDataVencimento(LocalDate.now().plusDays(7))
-                    .withDataPagamento(LocalDate.now())
-                    .withValor(1000.0)
-                    .withDescricao("Troca de óleo")
-                    .withSituacao(Situacao.EM_ABERTO)
-                    .withUsuario(new Usuario())
-                    .build();
-        });
+        DomainException ex = assertThrows(DomainException.class, () -> Conta.builder()
+                .withDataVencimento(LocalDate.now().plusDays(7))
+                .withDataPagamento(LocalDate.now())
+                .withValor(1000.0)
+                .withDescricao("Troca de óleo")
+                .withSituacao(Situacao.EM_ABERTO)
+                .withUsuario(new Usuario())
+                .build());
 
         assertEquals(MensagemErro.Conta.CONTA_ABERTA_COM_PAGAMENTO, ex.getMessage());
     }
 
     @Test
     public void deveLancarExcecaoPagaSemDataPagamento() {
-        DomainException ex = assertThrows(DomainException.class, () -> {
-            Conta.builder()
-                    .withDataVencimento(LocalDate.now().plusDays(7))
-                    .withValor(1000.0)
-                    .withDescricao("Troca de óleo")
-                    .withSituacao(Situacao.PAGO)
-                    .withUsuario(new Usuario())
-                    .build();
-        });
+        DomainException ex = assertThrows(DomainException.class, () -> Conta.builder()
+                .withDataVencimento(LocalDate.now().plusDays(7))
+                .withValor(1000.0)
+                .withDescricao("Troca de óleo")
+                .withSituacao(Situacao.PAGO)
+                .withUsuario(new Usuario())
+                .build());
 
         assertEquals(MensagemErro.Conta.CONTA_NAO_PAGA, ex.getMessage());
     }
@@ -164,9 +156,7 @@ public class ContaDomainTest {
                 .withUsuario(usuario)
                 .build();
 
-        DomainException ex = assertThrows(DomainException.class, () -> {
-            conta.validarPermissaoUsuario(usuarioSemAuth);
-        });
+        DomainException ex = assertThrows(DomainException.class, () -> conta.validarPermissaoUsuario(usuarioSemAuth));
 
         assertEquals(MensagemErro.Genericos.USUARIO_NAO_AUTORIZADO, ex.getMessage());
     }

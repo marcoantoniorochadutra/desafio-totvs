@@ -1,12 +1,10 @@
 package com.totvs.conta.infra.reader;
 
-import com.totvs.conta.interfaces.conta.dto.ContaDto;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -14,7 +12,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 public abstract class CsvReader<T> {

@@ -9,15 +9,19 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class TratamentoConstraintException {
+public class FormatMsgErroConstraint {
 
-    public static MensagemDto tratar(ConstraintViolationException ex) {
-        return new MensagemDto(buildMessage(ex.getConstraintViolations()));
+    public static ResponseEntity<Object> tratarExcecao(ConstraintViolationException ex) {
+        return ResponseEntity.badRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new MensagemDto(buildMessage(ex.getConstraintViolations())));
     }
 
     private static String buildMessage(Set<ConstraintViolation<?>> violations) {
@@ -46,7 +50,7 @@ public class TratamentoConstraintException {
         }
 
         if (!patternFields.isEmpty()) {
-            sb.append(String.format(" %s  %s.", MensagemErro.Genericos.INFORMACAO_INVALIDA, patternFields));
+            sb.append(String.format(" %s  %s.", MensagemErro.Genericos.CAMPO_INVALIDO, patternFields));
         }
 
         if (!sizeFields.isEmpty()) {
@@ -54,7 +58,7 @@ public class TratamentoConstraintException {
         }
 
         if (!numberFields.isEmpty()) {
-            sb.append(String.format(" %s  %s.", MensagemErro.Genericos.INFORMACAO_INVALIDA, numberFields));
+            sb.append(String.format(" %s  %s.", MensagemErro.Genericos.CAMPO_INVALIDO, numberFields));
         }
 
         return sb.toString();
@@ -91,6 +95,7 @@ public class TratamentoConstraintException {
         boolean isSizeAnnotation = false;
         if (violation.getConstraintDescriptor().getAnnotation() instanceof Min
                 || violation.getConstraintDescriptor().getAnnotation() instanceof Max) {
+
             numberFields.add(violation.getPropertyPath().toString());
             isSizeAnnotation = true;
         }

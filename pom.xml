@@ -8,17 +8,17 @@
 
 	<groupId>com.totvs</groupId>
 	<artifactId>conta</artifactId>
-	<version>0.0.1</version>
+	<version>1.0.0</version>
 
 	<properties>
 		<java.version>21</java.version>
 		<maven.compiler.source>21</maven.compiler.source>
 		<maven.compiler.target>21</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<docker.repo>marcodutra/desafio-totvs</docker.repo>
 
 		<logback-json.version>0.1.5</logback-json.version>
 		<org-apache-commons.version>1.12.0</org-apache-commons.version>
-		<dozer-mapper.version>7.0.0</dozer-mapper.version>
 		<io-jjwt.version>0.12.5</io-jjwt.version>
 		<lombok.version>1.18.34</lombok.version>
 		<test-container.version>1.20.3</test-container.version>
@@ -94,14 +94,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.github.dozermapper</groupId>
-			<artifactId>dozer-spring-boot-starter</artifactId>
-			<version>${dozer-mapper.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.dozermapper</groupId>
-			<artifactId>dozer-core</artifactId>
-			<version>${dozer-mapper.version}</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
 		</dependency>
 
 		<dependency>
@@ -169,7 +163,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>com.totvs.conta.ContaApplication</mainClass>
+					<mainClass>com.totvs.conta.TotvsApplication</mainClass>
 				</configuration>
 				<executions>
 					<execution>
@@ -235,7 +229,7 @@
 						<configuration>
 							<images>
 								<image>
-									<name>${docker.repo}/%a:%l</name>
+									<name>${docker.repo}:%l</name>
 									<build>
 										<dockerFileDir>.</dockerFileDir>
 										<createImageOptions>

@@ -7,5 +7,5 @@ import java.time.LocalDate;
 
 
 @Builder(setterPrefix = "with")
-public record ContaDto(Long id, LocalDate dataPagamento, LocalDate dataVencimento, Double valor, String descricao, SelecionavelDto situacao, SelecionavelDto usuario) {
+public record ContaDto(Long id, LocalDate dataPagamento, LocalDate dataVencimento, Double valor, String descricao, SelecionavelDto situacao, SelecionavelDto tipoConta, SelecionavelDto usuario) {
 }

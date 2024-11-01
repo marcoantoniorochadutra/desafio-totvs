@@ -13,9 +13,9 @@ public enum NivelUsuario {
     USUARIO(0, 10, "Usuário"),
     ADMIN(1, 10, "Usuário");
 
-    private int ordinal;
-    private int hierarquia;
-    private String descricao;
+    private final int ordinal;
+    private final int hierarquia;
+    private final String descricao;
 
     public Boolean isUsuario() {
         return this.equals(USUARIO);

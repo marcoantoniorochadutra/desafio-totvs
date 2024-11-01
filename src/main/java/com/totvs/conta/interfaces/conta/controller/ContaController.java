@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -33,13 +34,11 @@ public class ContaController {
     @Autowired
     private ContaService contaService;
 
-
     @PostMapping
     public ContaDto cadastrarConta(@AuthenticationPrincipal LoginContextDto login,
                                    @RequestBody ContaDto contaDto) {
         return contaService.cadastrarConta(login, contaDto);
     }
-
 
     @PutMapping("/{id}")
     public ContaDto atualizarConta(@AuthenticationPrincipal LoginContextDto login,
@@ -74,7 +73,7 @@ public class ContaController {
         return contaService.obterContasParaPagar(login, page, filtro);
     }
 
-    @GetMapping("/total-pagar")
+    @GetMapping("/total-pago")
     public ContaPagamentoDto obterValorTotalPago(
             @AuthenticationPrincipal LoginContextDto login,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dataInicial,
@@ -85,10 +84,9 @@ public class ContaController {
     }
 
 
-    @PostMapping("/importar/csv") // TODO ALTERAR RESPOSTA
-    public void importarContasCsv(@AuthenticationPrincipal LoginContextDto login, @RequestBody byte[] file) {
-
-
+    @PostMapping("/importar/csv")
+    public List<ContaDto> importarContasCsv(@AuthenticationPrincipal LoginContextDto login, @RequestBody byte[] file) {
+        return contaService.importarContasCsv(login, file);
     }
 
     private Map<String, Object> buildFiltroListagem(LocalDate dataVencimento, String descricao) {
